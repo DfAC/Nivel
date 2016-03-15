@@ -1,17 +1,11 @@
 ---
 title: "Nivel analysis"
-author: "LKB"
+author: "Kwabena/Chenyu"
 output: html_document
 ---
 
 ```{r, echo=FALSE}
-setwd("d:/tmp/Dropbox/EO/Teaching/2015-16/H24VEP_DEFO/03 Bridge/code/")
-
-#lets get course data
-#DataUrl<-'https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip'
-#download.file(DataUrl,destfile = './power_consumption.zip')
-#unzip('./power_consumption.zip')
-#unlink('./power_consumption.zip') #delete zip file
+setwd("D:/H24VEP")
 ```
 
 ## Data collection
@@ -22,117 +16,112 @@ setwd("d:/tmp/Dropbox/EO/Teaching/2015-16/H24VEP_DEFO/03 Bridge/code/")
 First, we need to read collected Nivel data file. We use standard library to snoop through the data and get information we need: time and inclination values
 
 
+
 ```{r}
-DataUrl<-file.path(getwd(),"collectedData.log")
+DataUrl<-file.path(getwd(),"data.log")
+Data = read.table(DataUrl,header = F,sep = " ",strip.white=TRUE, stringsAsFactors = F, na.strings = c('X:+9.999',"Y:+9.999") )
+```
 
-Data<-read.table(DataUrl,header = F, sep = c(";",",",":"),strip.white=TRUE, stringsAsFactors = F, na.strings= "?")
+Now we will:
+
+* remove text in columns 3-5
+* change 2nd column to time
+* drop unneeded columns
+* remame columns
+
+Bridge axis is along the bridge (E) and to left (N). Nivelator axis are y along and x across but opposite to RTS coordinates.
 
 
-#Data<-read.table(DataUrl,header = F, sep = ";",skip=66637, nrows = 2880, col.names = c('Date','Time','Global_active_power','Global_reactive_power','Voltage','Global_intensity','Sub_metering_1','Sub_metering_2','Sub_metering_3'))
-#sbdy suggested using  strip.white=TRUE, stringsAsFactors = F, na.strings= "?"
-#remove any records with N/A
-#Data<-Data[complete.cases(Data)]
+```{r}
+library("splitstackshape")
+Data <- cSplit(Data, c("V3","V4"), c(":"), drop = TRUE, stripWhite= TRUE, type.convert = F)
+Data$Time<-as.POSIXct(Data$V2, format="%H:%M:%S")
+Data[,c("V2","V3_1","V4_1","V5")]<-list(NULL)
 
-#get time sorted
-#Data$DT<-as.POSIXct(paste(Data$Date, Data$Time), format="%d/%m/%Y %H:%M:%S")
-#can strip columns 1&2 as wellnow
-#Data[,c("Date","Time")]<-list(NULL)
+columnNames = c("unixTime","across","along","temperature","Time")
+colnames(Data)<-columnNames
+Data<-Data[complete.cases(Data)]
+
+Data$unixTime <- Data$unixTime/100
+Data$across<-as.numeric(Data$across)
+Data$across<-as.numeric(Data$across)
+#Data$temperature<-as.numeric(Data$temperature)
+
+
+
 ```
 
 
 
-```{r}
-DataUrl<-file.path(getwd(),"001.csv")
-
-Data<-read.table(DataUrl,header = F, sep = c(";",",",":"),strip.white=TRUE, stringsAsFactors = F, na.strings= "?")
-
-
-#Data<-read.table(DataUrl,header = F, sep = ";",skip=66637, nrows = 2880, col.names = c('Date','Time','Global_active_power','Global_reactive_power','Voltage','Global_intensity','Sub_metering_1','Sub_metering_2','Sub_metering_3'))
-#sbdy suggested using  strip.white=TRUE, stringsAsFactors = F, na.strings= "?"
-#remove any records with N/A
-#Data<-Data[complete.cases(Data)]
-
-#get time sorted
-#Data$DT<-as.POSIXct(paste(Data$Date, Data$Time), format="%d/%m/%Y %H:%M:%S")
-#can strip columns 1&2 as wellnow
-#Data[,c("Date","Time")]<-list(NULL)
-```
 
 
 # Understanding data
 
-```{r, echo=FALSE}
-head
-```
-
-
-Lets now do some plotting
+* have we got axis properly?
 
 ```{r}
-#Plot1
-hist(Data$Global_active_power, col ='red', main = 'Global Active Power', xlab = 'Global Active Power (kilowatts)')
+plot(Data$across,Data$along, main = "Data spread")
+dev.copy(png,file = "plot1.png",width = 980, height = 980, units = "px", pointsize = 25)
+dev.off() #close device
+```
 
-dev.copy(png,file = "plot1.png",width = 980, height = 980, units = "px", pointsize = 15)
+
+* how can we estimate precise time?
+
+```{r}
+timeCorrection <- ((Data$unixTime[1:(length(Data$unixTime)-1)]-Data$unixTime[2:(length(Data$unixTime))]))/100
+Data$Time-timeCorrection
+
+timeInSeconds = as.numeric(Data$Time)
+```
+
+
+
+* have we got any outlayers ?
+
+
+# Time series
+
+Cross plots
+
+```{r}
+#plot(Data)
+```
+
+
+
+```{r}
+plot(Data$unixTime,Data$along, main = "Time series",xlab = "Unix time [??]", ylab = "Along [mrad]", ylim = c(-0.5,1))
+dev.copy(png,file = "plot1.png",width = 980, height = 980, units = "px", pointsize = 25)
 dev.off() #close device
 
-#Plot2
-plot(Data$DT,Data$Global_active_power, type = 'l',  xlab ='',  ylab = 'Global Active Power (kilowatts)')
-
-dev.copy(png,file = "plot2.png",width = 980, height = 980, units = "px", pointsize = 15)
-dev.off() #close device
-
-#Plot3
-#To avid text problems plot straight to device
-#lets first set device
-
-png(file = "plot3.png",width = 480, height = 480, units = "px")
-dev.cur()
-
-#then plot to device
-par(mfrow = c(1, 1), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
-plot(Data$DT,Data$Sub_metering_1, type = 'l',  xlab ='',  ylab = 'Energy sub metering')
-lines(Data$DT,Data$Sub_metering_2, col='red')
-lines(Data$DT,Data$Sub_metering_3, col='blue')
-legend('topright',c('Sub_metering_1','Sub_metering_2','Sub_metering_3'),
-       lty=c(1,1,1), #define lines for legend
-       col=c('black','red','blue') #define line colors
-)
-dev.off() #close device
-
-
-#Plot4
-#make sure we got default settings for plotting
-.pardefault <- par(no.readonly = T)
-
-#To avid text problems plot straight to device
-#lets first set device
-
-png(file = "plot4.png",width = 480, height = 480, units = "px")
-dev.cur()
-
-
-#Plot4
-par(mfrow = c(2, 2), mar = c(4, 4, 2, 1), oma = c(0, 0, 2, 0))
-with(Data, {
-  #sub-plot 1
-  plot(Data$DT,Data$Global_active_power, type = 'l', ylab = 'Global Active Power', xlab = '')
-  #sub-plot 2
-  plot(Data$DT,Data$Voltage, type = 'l', ylab = 'Voltage', xlab = 'Date')
-
-{#sub-plot 3
-    plot(Data$DT,Data$Sub_metering_1, type = 'l',  xlab ='',  ylab = 'Energy sub metering')
-    lines(Data$DT,Data$Sub_metering_2, col='red')
-    lines(Data$DT,Data$Sub_metering_3, col='blue')
-    legend('topright',c('Sub_metering_1','Sub_metering_2','Sub_metering_3'),
-           lty=c(1,1,1), #define lines for legend
-           col=c('black','red','blue'), #define line colors
-           bty = "n" #no border
-    )} #sub-plot 3 ends
-
-#sub-plot 4
-plot(Data$DT,Data$Global_reactive_power, type = 'l', ylab = 'Global Reactive Power', xlab = 'Date')
-})
-
+plot(Data$unixTime,Data$across, main = "Time series",xlab = "Unix time [??]", ylab = "Across [mrad]")
+dev.copy(png,file = "plot2.png",width = 980, height = 980, units = "px", pointsize = 25)
 dev.off() #close device
 
 ```
+
+
+```{r,echo=F}
+plot(Data$Time,Data$along, main = "Time series",xlab = "Time [s]", ylab = "Along [mrad]", ylim = c(-0.5,1))
+dev.copy(png,file = "plot1_time.png",width = 980, height = 980, units = "px", pointsize = 25)
+dev.off() #close device
+
+plot(Data$Time,Data$across, main = "Time series",xlab = "Unix time [??]", ylab = "Across [mrad]")
+#daterange=c(as.POSIXlt(min(data$Time)),as.POSIXlt(max(data$Time))) 
+#axis.POSIXct(1, at=seq(daterange[1], daterange[2], by="minute"), format="%H:%M:%S") #label the x axis by minutes
+dev.copy(png,file = "plot1.png",width = 980, height = 980, units = "px", pointsize = 25)
+dev.off() #close device
+
+```
+
+## Working on drift
+
+```{r,Echo=False}
+plot(Data$Time,Data$along, main = "Time series",xlab = "Time [s]", ylab = "Along [mrad]", ylim = c(-0.5,1))
+dev.copy(png,file = "plot1_time.png",width = 980, height = 980, units = "px", pointsize = 25)
+dev.off() #close device
+
+
+```
+
