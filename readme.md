@@ -50,7 +50,7 @@ t | uniq` results show that responses with Lenght 33+ containt reading values
 
 ## Old bash/cmd line approach
 
-A simplest way to parse the code is to use **bash**[^Cmder]:
+A simplest way to parse the code is to use **bash**[^Cmder] and script below:
 
 
 ```
