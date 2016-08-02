@@ -5,7 +5,8 @@ output: html_document
 ---
 
 ```{r introSettings, message=FALSE, warning=FALSE}
-setwd("d:/tmp/Dropbox/EO/Teaching/2015-16/H24VEP_DEFO/Nivel/")
+setwd("d:/Tower/02Processing/Nivel/")
+
 
 #set std for knitr => http://yihui.name/knitr/options/
 library(knitr)
@@ -135,11 +136,9 @@ lines(Data$along,axes=T,col = rgb(00,100,0,50, maxColorValue = 255))
 
 ## Working on drift
 
-```{r,Echo=False}
-plot(Data$Time,Data$along, main = "Time series",xlab = "Time [s]", ylab = "Along [mrad]", ylim = c(-0.5,1))
-dev.copy(png,file = "plot1_time.png",width = 980, height = 980, units = "px", pointsize = 25)
-dev.off() #close device
-
-
+```{r}
+plot(Data$Time,Data$along, main = "Time series",xlab = "Time [s]", ylab = "Along [mrad]")
+#dev.copy(png,file = "plot1_time.png",width = 980, height = 980, units = "px", pointsize = 25)
+#dev.off() #close device
 ```
 
