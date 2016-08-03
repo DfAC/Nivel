@@ -11,7 +11,7 @@ Work with [Leica Nivel 220](http://leica-geosystems.com/products/levels/leica-ni
 # Data collection
 
 * set up  Nivel220 sensor (RS485 interface) and connect it to the laptop via USB converter
-* start [port sniffer](https://technet.microsoft.com/en-us/sysinternals/bb896644) and select Nivel COM port
+* start [Portmon for Windows v3.03](https://technet.microsoft.com/en-us/sysinternals/bb896644) port sniffer and select Nivel COM port
   * In Windows make sure that COM port is <5 and that speed is the same as set up for Leica Nivel
 * start Leica Nivel 220 **NivelTool** software
   * setup **NivelTool** to output data continously
@@ -68,6 +68,7 @@ This code can also be executed by running ExtractNivel.bat.
 
 ## python
 
+Compile **ParserSnifferData.py** using [py2exe](https://pypi.python.org/pypi/py2exe/#installation). Note that official version is for python 3.3 so don't use pip and install from link instead.
 
 
 # Data analysis
