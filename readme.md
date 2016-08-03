@@ -23,7 +23,6 @@ Work with [Leica Nivel 220](http://leica-geosystems.com/products/levels/leica-ni
 * Leica recommend using [Hercules](http://www.hw-group.com/products/hercules/index_en.html) as commands have to be send as hex
 * for command details check
 
-
 # Data parsing
 
 # Exploratory data analysis
@@ -35,30 +34,40 @@ Before we parse data it is important to understand it.
 We are using **NivelTool** soft to extract information.
 
 * Use `grep "N1C1" 008.LOG | cut -d. -f4 | sort | uniq -c` to list commands used
-  * N1C1 W N 008; N1C1 PS set sample average
-    * this sets no of measurments to average before producing measurments
-  * get Nivel sensor information - N1C1 RB [A B D I], sensor offsets - N1C1 RP [OX OY OT]
-  * reading is triggered by N1C1 G A command
+  * `N1C1 W N 008; N1C1 PS` set sample average
+    * this sets no of measurements to average before producing measurements
+  * get Nivel sensor information - `N1C1 RB [A B D I]`, sensor offsets - `N1C1 RP [OX OY OT]`
+  * reading is triggered by `N1C1 G A` command with the answer as `CxNx X:vz.zzz Y:vz.zzz T:vz.zz` where
+    * X,Y - inclinations-cross and inclinations-length values in in mrad (0.001 rad)
+
+cc | " | mrad | μrad
+:-: |:-:| :-:  | :-:
+1 | 0.324 | 1.570796E-3 | 1.570796
+3.08641975 | 1 | 4.848136E-3 | 4.848136
+636.61977 | 206.2648062 | 1 | 1000
+0.63661977 | 0.206264806 | 0.001 | 1
+      *
+    * T -
+    * The NIVEL200 sensor detects inclinations at a rate of once a second. Before being displayed, these values are then corrected according to the correction factors
+    * The temperature inside the NIVEL200 sensor is measured every 10 seconds and the signal is directly accessible
+    * see [TechRef](https://github.com/DfAC/Nivel/blob/master/Docs/Nivel200_TechRef.pdf) for more information.
+* `SUCCESS  Length` response come from sniffer
 
 
-`grep "SUCCESS  Length" 008.LOG | cut -d' ' -f8 | cut -d: -f1 | sor
-t | uniq` results show that responses with Lenght 33+ containt reading values
-
-
-
-
-
-## Old bash/cmd line approach
+## Bash/cmd line approach
 
 A simplest way to parse the code is to use **bash**[^Cmder] and script below:
 
 
 ```
 FOR /f %%F IN ('dir /b *.log') DO (
-grep "SUCCESS  Length 35:" %%F | tr -s ' ' | cut -d" " -f1,2,7-9 | cut -d. -f1-4 | tr -s ' ' ',' > %%~nF.csv
+grep "C1N1 X" %%F | tr -s ' ' | cut -d" " -f1,2,7-9 | cut -d. -f1-4 | tr -s ' ' ',' > %%~nF.csv
 )
 ```
-This code can also be executed by running ExtractNivel.bat. This approach is
+This code can also be executed by running ExtractNivel.bat.
+
+## python
+
 
 
 # Data analysis
