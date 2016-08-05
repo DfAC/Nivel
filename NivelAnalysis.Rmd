@@ -26,7 +26,7 @@ This is R code is processing [Leica Nivel 220](http://www.leica-geosystems.co.uk
 
 ```{r}
 library("splitstackshape")
-DataUrl<-file.path(getwd(),"data.log")
+DataUrl<-file.path(getwd(),"Nivel220.LOG")
 Data = read.table(DataUrl,header = F,sep = " ",strip.white=TRUE, stringsAsFactors = F, na.strings = c('X:+9.999',"Y:+9.999") )
 
 ```
