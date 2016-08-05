@@ -52,15 +52,16 @@ cc | " | mrad | μrad
 **ParserSnifferData.py** is a python routine parsing every **.log* file in current dir. To create executable:
 
 1. install [pyinstaller](https://github.com/pyinstaller/pyinstaller/) using ` pip install pyinstaller`
-<s>2. [compile code](http://pyinstaller.readthedocs.io/en/latest/usage.html) `pyinstaller.exe --onefile --distpath ./ ParseSnifferData.py`
-3. delete *./build*</s>
+<s>2. [compile code](http://pyinstaller.readthedocs.io/en/latest/usage.html) `pyinstaller.exe --onefile --distpath ./ ParseSnifferData.py`</s>
 4. run *compileBinary.bat*
 3. run *ParseSnifferData.exe* to process logs
+  * output is CSV file with time,X,Y,T columns 
+  * sample *Nivel220.log* from May 2016 [Wilford Suspension Bridge](https://en.wikipedia.org/wiki/Wilford_Suspension_Bridge) trials is provided.
 
 
 ## parsing it with Bash/cmd line
 
-A simplest way to parse the code is to use **bash**[^1] script below:
+Another approach, now superseded by python code, is to use **bash**[^1] script below:
 
 ```
 FOR /f %%F IN ('dir /b *.log') DO (
