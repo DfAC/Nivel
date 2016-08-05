@@ -35,8 +35,8 @@ Lets understand a bit more about the data we collected. We are using **NivelTool
     * X,Y - inclinations-cross and inclinations-length values in in mrad (0.001 rad)
     * T - temperature in °C (0.1)
     * [Nivel TechRef][TechRef]:
-    * The NIVEL200 sensor detects inclinations at a rate of once a second. Before being displayed, these values are then corrected according to the correction factors
-    * The temperature inside the NIVEL200 sensor is measured every 10 seconds
+      * The NIVEL200 sensor detects inclinations at a rate of once a second. Before being displayed, these values are then corrected according to the correction factors
+      * The temperature inside the NIVEL200 sensor is measured every 10 seconds
 * `SUCCESS  Length` response is from [sniffer][Portmon].
 
 cc | " | mrad | μrad
