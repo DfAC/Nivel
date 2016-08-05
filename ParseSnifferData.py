@@ -43,6 +43,8 @@ def parserNivel(dataFileName):
         Val = re.split(' |:', '.'.join(Val))[1::2] #X Y T
         Val = time + Val  #time X Y T
         outString = "{d[0]},{d[1]},{d[2]},{d[3]}\n".format(d=Val)
+        #pdb.set_trace() 
+        outString = re.sub("\+", "", outString) #remove +
         outFile.write(outString)
 
       except ValueError:

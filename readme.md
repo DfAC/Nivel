@@ -52,8 +52,9 @@ cc | " | mrad | μrad
 **ParserSnifferData.py** is a python routine parsing every **.log* file in current dir. To create executable:
 
 1. install [pyinstaller](https://github.com/pyinstaller/pyinstaller/) using ` pip install pyinstaller`
-2. [compile code](http://pyinstaller.readthedocs.io/en/latest/usage.html) `pyinstaller.exe --onefile --distpath ./ ParseSnifferData.py`
-3. delete *./build*
+<s>2. [compile code](http://pyinstaller.readthedocs.io/en/latest/usage.html) `pyinstaller.exe --onefile --distpath ./ ParseSnifferData.py`
+3. delete *./build*</s>
+4. run *compileBinary.bat*
 3. run *ParseSnifferData.exe* to process logs
 
 

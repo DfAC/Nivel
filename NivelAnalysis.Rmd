@@ -11,7 +11,6 @@ setwd("d:/Tower/02Processing/Nivel/")
 #set std for knitr => http://yihui.name/knitr/options/
 library(knitr)
 opts_chunk$set(echo = FALSE, cache = T, cache.path = "cache/", fig.path = "figure/", warning = FALSE,error=FALSE,message=F,strip.white=T)
-
 ```
 
 This is R code is processing [Leica Nivel 220](http://www.leica-geosystems.co.uk/en/Leica-Nivel210Nivel220_33357.htm) data collected using [port sniffer](https://technet.microsoft.com/en-us/sysinternals/bb896644). Data read has been pre-processed using Unix tools.
@@ -26,10 +25,12 @@ This is R code is processing [Leica Nivel 220](http://www.leica-geosystems.co.uk
 
 ```{r}
 library("splitstackshape")
-DataUrl<-file.path(getwd(),"Nivel220.LOG")
-Data = read.table(DataUrl,header = F,sep = " ",strip.white=TRUE, stringsAsFactors = F, na.strings = c('X:+9.999',"Y:+9.999") )
+DataUrl<-file.path(getwd(),"Nivel220.out")
+Data = read.table(DataUrl,header = F,sep = ",",strip.white=TRUE, stringsAsFactors = F, na.strings = c('9.999') )
 
 ```
+
+{Change code from here!}
 
 Lets now clean the data:
 
