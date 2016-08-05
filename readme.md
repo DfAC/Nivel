@@ -49,7 +49,7 @@ cc | " | mrad | μrad
 
 ## parsing it with python
 
-**ParserSnifferData.py** is a python rutine parsing every **.log* file in current dir. To create exectable:
+**ParserSnifferData.py** is a python routine parsing every **.log* file in current dir. To create executable:
 
 1. install [pyinstaller](https://github.com/pyinstaller/pyinstaller/) using ` pip install pyinstaller`
 2. [compile code](http://pyinstaller.readthedocs.io/en/latest/usage.html) `pyinstaller.exe --onefile --distpath ./ ParseSnifferData.py`
@@ -73,10 +73,9 @@ This code can also be executed by running ExtractNivel.bat.
 
 # Data analysis
 
+* *./Docs* contain all Leica Geosystem manuals for Nivel.
 * A [RStudio](https://www.rstudio.com/) script (*NivelAnalysis.Rmd*) is provided as a sample.
 * *exploreTime.bat* and *exploreTime.plt* is an example of visual analysis using GNUplot.
-
-
 
 
 
