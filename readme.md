@@ -19,4 +19,4 @@ This repo includes a sample code demonstrating introductory data analysis of Niv
 * *exploreTime.bat* and *exploreTime.plt* is an example of visual analysis using GNUplot.
 
 
-For more information check [Wiki pages of this project](../../wiki) and * *./Docs* containing all Leica Geosystem manuals for Nivel.
+For more information check [Wiki pages of this project](../../wiki) and [./Docs](./Docs/) containing all Leica Geosystem manuals for Nivel.
