@@ -1,78 +1,85 @@
 ---
 title: "Nivel analysis"
 author: "LKB"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
-```{r introSettings, message=FALSE, warning=FALSE}
-setwd("d:/Tower/02Processing/Nivel/")
+```{r introSettings, message=FALSE, warning=FALSE, echo=FALSE}
+#UNIX path
+setwd("d:/tmp/Dropbox/EO/Teaching/2016-17/H24VEP_EngDefSurvPractical/03 Bridge/Nivel/")
 
 
 #set std for knitr => http://yihui.name/knitr/options/
 library(knitr)
-opts_chunk$set(echo = FALSE, cache = T, cache.path = "cache/", fig.path = "figure/", warning = FALSE,error=FALSE,message=F,strip.white=T)
+opts_chunk$set(echo = TRUE, cache = T, cache.path = "cache/", fig.path = "figure/", warning = FALSE,error=FALSE,message=F,strip.white=T)
 ```
 
-This is R code is processing [Leica Nivel 220](http://www.leica-geosystems.co.uk/en/Leica-Nivel210Nivel220_33357.htm) data collected using [port sniffer](https://technet.microsoft.com/en-us/sysinternals/bb896644). Data read has been pre-processed using Unix tools.
 
 
-## Reading Data
+This R code is processing [Leica Nivel 220](http://www.leica-geosystems.co.uk/en/Leica-Nivel210Nivel220_33357.htm) data collected using [port sniffer](https://technet.microsoft.com/en-us/sysinternals/bb896644). 
 
-* values +9.999 indicate readings out of scale
-* Bridge axis is along the bridge (E) and to left (N). Nivelator axis are y along and x across but opposite to RTS coordinates.
+## Data Parsing
+
+Nivel220 sniffed data has been parsed using a python script. For this initial analysis, we will use the output file. 
+Few things to remember:
+
+* Output file is a CSV file - time, X, Y, temperature;
+* A reading *+9.999* for X or Y indicates value out of scale and should be ignored;
+* Bridge axis is along the bridge (E) and to left (N). Translating those to the Nivel220 results we got Y along and X across but with opposite direction to the RTS coordinates.
 
 
 
 ```{r}
 library("splitstackshape")
-DataUrl<-file.path(getwd(),"Nivel220.out")
+DataUrl<-file.path(getwd(),"170322_Nivel.out")
 Data = read.table(DataUrl,header = F,sep = ",",strip.white=TRUE, stringsAsFactors = F, na.strings = c('9.999') )
 
+columnNames = c("Time","along","across","temperature")
+colnames(Data)<-columnNames #get columns properly
+
+Data$Time<-as.POSIXct(Data$Time, format="%H:%M:%S",tz="GMT") #get time class properly
+head(Data)
+
+#some class wrappers in action
+#last(Data$Time)-first(Data$Time)
+
 ```
 
-{Change code from here!}
+## Data Cleaning
 
-Lets now clean the data:
-
-* properly split columns 3-5
-* change Unix time to seconds
-* drop and rename columns
-* remove rows with at least one missing data
-* mrads to $\frac{mm}{m} using $1000tg(\frac{\alpha}{1000})$
+* Lets now clean the data by removing rows with missing data, we expect 'r sum(!complete.cases(Data))' rows to be removed.
+* Lets add another column describing our time in measurment epochs [s], since start of trial
+* We can also translate the mrads to deflection [$\frac{mm}{m}$] using equation $1000tg(\frac{\alpha}{1000})$. As angles are very small tangens of angle equals deflection, as shown below, so we can as well use values directly.
 
 ```{r}
-Data <- cSplit(Data, c("V3","V4"), c(":"), drop = TRUE, stripWhite= TRUE, type.convert = F)
-#drop
-Data[,c("V3_1","V4_1")]<-list(NULL)
-#rename
-columnNames = c("Time","ClockTime","temperature","across","along")
-colnames(Data)<-columnNames
-
-Data$ClockTime<-as.POSIXct(Data$ClockTime, format="%H:%M:%S")
-Data$Time <- Data$Time/100
-Data$across<-1000*tan(as.numeric(Data$across)/1000)
-Data$along<-1000*tan(as.numeric(Data$along)/1000)
-Data$temperature<-as.numeric(substr(Data$temperature,3,7))
-
 #remove rows with at least one missing data
-Data<-Data[complete.cases(Data)]
+#Data<-Data[complete.cases(Data),]
+
+#time to epochs
+Data$Epoch<-as.numeric(Data$Time)-as.numeric(Data$Time)[1]
+
+sum(Data$across-1000*tan(Data$across/1000))/length(Data$across) #calc diff in [mm]
+#Data$temperature<-as.numeric(substr(Data$temperature,3,7)) #no need for that
 ```
 
 
-# Understanding data
+## QC
 
-## have we got axis properly?
+Let's first start with sanity check - have we got our axis properly defined?
 
 ```{r}
-plot(Data$across,Data$along,col = rgb(100,0,0,50, maxColorValue = 255), asp =1, main = "Data spread")
+plot(Data$across,Data$along,col = rgb(100,0,0,50, maxColorValue = 255), asp =1, main = "XY spread")
 
+library(scales)
+hist(Data$across,border=F,col='skyblue', main = "Data spread")
+hist(Data$along,add=T,col=scales::alpha('red',.5),border=F)
+legend("topright", c("Across", "Along"), fill=c("skyblue", "red"))
 ```
+Looks good.
 
-Also note that we don't have any outlayers
-
-## Is our time correct
-
-* Check if differnces between epochs are constant
+Is our time correct? Let's check if differnces between epochs are constant.
 
 ```{r timeOffset, echo=F}
 
@@ -88,54 +95,38 @@ return(epochDifference)
 
 ```{r}
 
-unixTimeDifference = getEpochDifference(Data$Time)
-CPUTimeDiff = getEpochDifference(Data$ClockTime)
+TimeDifference = getEpochDifference(Data$Time)
 
-plot(CPUTimeDiff,type='p',col = rgb(00,100,0,50, maxColorValue = 255), main = "Time difference between epochs",ylab = "time diff [s]")
-lines(unixTimeDifference,col = rgb(100,00,0,50, maxColorValue = 255))
+plot(TimeDifference,type='p',col=scales::alpha('red',.6), main = "Time difference between epochs",ylab = "time diff [s]")
+#lines(unixTimeDifference,col = rgb(100,00,0,50, maxColorValue = 255))
 
 
 ```
 
-* check if both times have same duration
+It looks like a missing data at the start of the dataset, we should remove startin data
 
-```{r}
-Data$Time[length(Data$Time)]-Data$Time[1]
-as.numeric(Data$ClockTime[length(Data$ClockTime)]-Data$ClockTime[1])*60
+## Visualising data
 
-```
-Thats a bit strage, lets drop first value, as it seems a bit off
-
-```{r}
-test = Data
-Data = Data[-1] #remove first column
-Data$Time[length(Data$Time)]-Data$Time[1]
-as.numeric(Data$ClockTime[length(Data$ClockTime)]-Data$ClockTime[1])*60
-```
-
-Still off, well need further research
-
-
-# Time series
-
-Cross plots
-
-```{r}
-#plot(Data)
-```
 
 
 
 ```{r}
-plot(Data$Time,Data$across,type='l',col = rgb(100,0,0,50, maxColorValue = 255), main = "Time series",xlab = "time [s]", ylab = "movement [mrad]")
-lines(Data$along,axes=T,col = rgb(00,100,0,50, maxColorValue = 255))
+plot(Data$Epoch,Data$across,type='l',col = 'red', main = "Time series",xlab = "time [s]", ylab = "movement [mrad]")
+lines(Data$Epoch,Data$along,col = rgb(00,100,0,50, maxColorValue = 255))
 
 ```
 
 
+# Future work
+
+Good luck. Feel free to use any software package you fell comftable with. Data is small enough to be processed in Excel, though more advanced packages would be recommended.
 
 
-## Working on drift
+### Some suggestions on future work 
+
+* Sync data using known time segments
+* Can we see a drift in XY data? This would suggest poor mounting.
+* (optional) Can you use first column to estimate sub-second value? Check commits from 2016 for existing code working on it and use *ExtractNivel.bat* to parser Nivel data instead.
 
 ```{r}
 plot(Data$Time,Data$along, main = "Time series",xlab = "Time [s]", ylab = "Along [mrad]")
